@@ -3,7 +3,7 @@
 ```
 var a int
 ```
-* 변수를 선언하면서 초기값을 지정하지 않으면 Go는 Zero Value를 기본적으로 할당한다.
+* 변수를 선언하면서 초기값을 지정하지 않으면 Go는 Zero  Value를 기본적으로 할당한다.
 ```
 var number int
 var str string
@@ -251,3 +251,316 @@ func nextValue() func() int {
     }
 }
 ```
+#### 배열
+* 연속적인 메모리 공간에 동일한 타입의 데이타를 순서적으로 저장하는 자료구조이다. Go에서 배열의 첫번째 요소는 0번, 그 다음은 1번, 2번 등으로 인덱스를 매긴다 (Zero based array).
+```
+func main() {
+    var a [3]int  //정수형 3개 요소를 갖는 배열 a 선언
+    a[0] = 1
+    a[1] = 2
+    a[2] = 3
+    println(a[1]) // 2 출력
+}
+```
+* 배열 크기는 생략할 수 있다.
+```
+var a [...]int{1,2,3,4..}    // 인자 갯수만큼 자동할당
+```
+
+#### 컬렉션 - Slice
+* Go 배열은 크기를 동적으로 증가시키거나 부분 배열을 추출할 수 없다. Slice는 이런 제약점을 넘어 유용항ㄴ 기능을 제공.
+* 크기를 미리 지정하지 않을 수 있고 크기를 동적으로 변경, 부분배열을 추출할 수 있다.
+```
+var a []int
+var a2 = make([]int, 5, 10) 
+a2 = a2[2:5]    // 2번 인덱스 원소부터 5 - 1번 인덱스 원소까지 부분 Slice
+a2.append(a2, 3 ,4 ,5) // a2에 3개 append
+```
+
+#### 컬렉션 - Map
+* Map은 key : value의 해쉬테이블
+* var map[Key타입]value타입 으로 선언.
+```
+var myamp map[int]string    // 이렇게 선언시 Nil Map이 되어 값을 쓸 수 없다.
+mymap = make(map[int]string) 또는
+myamp := map[string]string{
+"a":"b"
+}                               // 이런식으로 리터럴로 초기화해야함.
+```
+* 새로운 데이터 추가는 간단한 편이다.
+```
+func main() {
+    var m map[int]string
+ 
+    m = make(map[int]string)
+    //추가 혹은 갱신
+    m[901] = "Apple"
+    m[134] = "Grape"
+    m[777] = "Tomato"
+ 
+    // 키에 대한 값 읽기
+    str := m[134]
+    println(str)
+ 
+    noData := m[999] // 값이 없으면 nil 혹은 zero 리턴
+    println(noData)
+ 
+    // 삭제
+    delete(m, 777)
+}
+```
+* 맵은 map[key]로 값을 가져올때 두개의 값을 리턴한다. 첫번째 키는 value고 두번째 키는 그 키에 해당하는 값이 존재하는지 아닌지를 나타내는 bool 값이다.
+* 컬렉션 Map에 for range를 사용하면 Map키와 Map 값 2개를 리턴한다.
+```
+func main() {
+    myMap := map[string]string{
+        "A": "Apple",
+        "B": "Banana",
+        "C": "Charlie",
+    }
+ 
+    // for range 문을 사용하여 모든 맵 요소 출력
+    // Map은 unordered 이므로 순서는 무작위
+    for key, val := range myMap {
+        fmt.Println(key, val)
+    }
+}
+```
+
+#### 패키지 import
+```
+import "fmt"
+ 
+func main(){
+ fmt.Println("Hello")
+}
+```
+* 패키지는 함수, 구조체, 메서드 등이 존재하는데, 이름이 대문자로 시작하면 사용할 수있다.
+* 소문자는 non-public, 대문자는 public / 구별해서 잘 사용.
+* 패키지 실행시 처음으로 호출되는 함수인 init() 함수. init()함수는 패키지가 로드되면서 실행되는 함수로 별도의 호출없이 자동으로 호출.
+```
+package testlib
+ 
+var pop map[string]string
+ 
+func init() {   // 패키지 로드시 map 초기화
+    pop = make(map[string]string)
+}
+```
+* import 호출 시 _ 라는 alias를 지정하면 init()함수만을 호출한다.
+```
+package main
+import _ "other/xlib"
+```
+* 만약 패키지 이름이 동일하지만, 서로 다른 버젼 혹은 서로 다른 위치에서 로딩하고자 할 때는, 패키지 alias를 사용해서 구분할 수 있다.
+```
+import (
+    mongo "other/mongo/db"
+    mysql "other/mysql/db"
+)
+func main() {
+    mondb := mongo.Get()
+    mydb := mysql.Get()
+    //...
+}
+```
+* 패키지를 만들때는, 폴더를 하나 만들고 안에 .go 파일들을 만들어 구성. 모두 동일핝 패키지명을 가지며 패키지명은 폴더의 이름과 같게한다.
+* Go 패키지를 빌드하고 /pkg 폴더에 인스톨하기 위해서 "go install" 명령어를 입력하면 폴더안에서 실행할 수 있다
+
+#### 구조체
+* Go의 struct는 필드 데이터만을 가지며 메스드를 갖지 않는다.
+* OOP를 고유의 방식으로 지원하며 클래스, 객체, 상속 개념이 없다.
+* 매서드는 별도로 분리하여 정의한다
+```
+type person struct{
+    name string
+    age int
+}
+```
+* 구조체 객체 생성법
+```
+# 빈 객체 생성 후, 나중에 필드값을 채워넣는 방법.
+me := person{}
+me.name = "호영"
+me.age = 220
+
+# 초기값과 함께 할당하는 방법
+me := person{name: "호영", age:220}
+
+# 내장함수 new()를 사용하는 방법.
+# 모든 필드를 zero value로 초기화하고 포인터를 리턴한다.
+# 포인터로 필드엑세스시 (.)을 사용하는데 이때 자동으로 Dereference된다.
+me := new(person)
+me.name = "호영"
+me.age = 220
+
+# struct를 함수의 파라미터로 넘긴다면 Pass by value로 객체를 복사해서 전
+# 객체를 pass by reference로 전달하려면 struct의 포인터를 전달해야 한다.
+```
+* 생성자 함수를 사용할 수 있다. 행성자 함수는 struct 타입을 리턴하는 함수로서 함수 본문에서 필요한 필드를 초기화한다.
+```
+func newPerson() *person{
+  p := person{}
+  person.name = "KK"
+  person.age = "0"
+  return &p
+}
+
+func main() {
+    per := newPerson()
+}
+```
+
+#### Go 메서드
+* Go에서는 struct가 필드만을 가지며 메서드는 별도로 분리되어 정의된다.
+* func 키워드와 함수명 사이에 그 함수가 어떤 struct를 위한 메서드인지를 표시한다. receiver라고 한다.
+```
+func (p person) nextage() int{
+    p.age++;
+    return p.age
+}               // 이것은 Value receiver이며 해당 객체의 값을 변경시키지 않는다. 즉 Call By Value라는 소리.
+
+func (p *person) nextage() int{
+    p.age++
+}               // 이와같이 pointer receiver로 구현한다면 전달된 객체의 값도 변경된다.
+```
+
+#### 인터페이스
+* 구조체는 필드들의 집합, 인터페이스는 메서드들의 집합이다.
+* 하나의 사용자 정의 타입(구조체)이 인터페이스를 구현하기 위해서는 그 인터페이스가 갖는 모든 메서드들을 구현합면 된다.
+```
+type animal interface {
+    age() int
+}
+type person struct {
+    age int
+    name string
+}
+
+func newPerson() *person{
+    p := person{}
+    p.name ="in"
+    p.age = 0
+    return &p
+}
+
+func (p person) age() int{
+    retunr p.age
+}
+```
+* 인터페이스를 사용하는 일반적인 예로 함수가 파라미터로 인터페이스를 받는 경우가 있다.
+* 함수 파라미터가 interface인 경우 어떤 타입이든 해당 인터페이스의 모든 함수를 구현하기만 했으면, 파라미터로 쓸 수 있따는 것을 의미한다.
+```
+func getage(animal ...animals){
+    for _, a: range animals{
+        age = animal.age()
+        print(age)
+    }
+}
+```
+#### 인터페이스 타입.
+* 빈 인터페이스 v interface{} 의 의미는 Go의 모든타입은 적어도 0개의 메서드를 구현하므로. v interface{}는 모든 타입을 나타내ㅡㄴㄴ 의미이다.
+* 즉 어떤 타입도 담을 수 있는 컨테이너 같은 개념이다.
+* Type assertion : interface타입 x와 어떤타입 T에 대해 x가 nil이 아니며 T타입이라는걸 확인할때 사용.
+```
+var a interface{} = 1
+
+j := a.(int) // 21
+k := a.(string) // error
+```
+
+#### 에러처리
+* Go는 내장타입으로 error라는 interface타입을 갖는다.
+* error 인터페이스는 다음과 같다.
+```
+type error interface{
+    Error() string
+}
+```
+* 즉 특정 구조체에서 Error 메서드를 정의하면 error interface를 구현하는것이 된다.
+
+#### 지연실행 defer
+* defer키워드는 특정 문장 혹은 함수를 나중에 실행하게 한다.
+
+#### panic 함수
+* panic함수는 함수를 즉시 멈추고 defer함수들을 모두 실행한 후, 즉시리턴. 마지막에는 에러를 내고 종료하게 된다.
+
+#### recover함수
+* panic에 의한것을 정상으로 
+
+#### Goroutine
+* 런타임이 관리하는 가상적 쓰레드.
+* go 키워드를 사용하여 함수를 호출하면 런타임시 새로운 goroutine을 실행.
+* 비동기적으로 함수루틴을 실행하므로 여러코드를 동시에 실행하는데 사용.
+```
+func say(s string) {
+    for i := 0; i < 10; i++ {
+        fmt.Println(s, "***", i)
+    }
+}
+ 
+func main() {
+    // 함수를 동기적으로 실행
+    say("Sync")
+ 
+    // 함수를 비동기적으로 실행
+    go say("Async1")
+    go say("Async2")
+    go say("Async3")
+ 
+    // 3초 대기
+    time.Sleep(time.Second * 3)
+}
+```
+#### 여러 Go루틴들이 끝날 때까지 기다리기.
+```
+import (
+    "fmt"
+    "sync"
+)
+ 
+func main() {
+    // WaitGroup 생성. 2개의 Go루틴을 기다림.
+    var wait sync.WaitGroup
+    wait.Add(2)
+ 
+    // 익명함수를 사용한 goroutine
+    go func() {
+        defer wait.Done() //끝나면 .Done() 호출
+        fmt.Println("Hello")
+    }()
+ 
+    // 익명함수에 파라미터 전달
+    go func(msg string) {
+        defer wait.Done() //끝나면 .Done() 호출
+        fmt.Println(msg)
+    }("Hi")
+ 
+    wait.Wait() //Go루틴 모두 끝날 때까지 대기
+}
+```
+
+#### Go 채널
+* 채널은 데이터를 주고 받는 통로. 채널은 make()함수를 통해 미리 생성되어야 한다.
+* <- 를 통해 데이터를 보내고 받는다.
+```
+func routine1(ourChannel chan string) {
+        // 채널에 값을 넣습니다.
+        ourChannel<- "data"
+}
+
+func routine2(ourChannel chan string) {
+        // 채널로부터 값을 받습니다.
+        fmt.Println(<-ourChannel)
+        // 출력값 : data
+}
+
+func main() {
+        // string 채널을 위한 메모리를 할당합니다.
+        ourChannel := make(chan string)
+        
+        go routine1(ourChannel)
+        go routine2(ourChannel)
+} 
+```
+* 채널을 닫으면 송신은 불가능 하지만 수신은 가능하다.
